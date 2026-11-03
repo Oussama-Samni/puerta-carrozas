@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="referrer" content="no-referrer">
+<meta name="robots" content="noindex">
+<!-- Ya es oscura: que los modos oscuros del navegador no la repinten. -->
+<meta name="darkreader-lock">
+<title>Puerta</title>
+<style>
+  /* La puerta de fuera de Google (GitHub Pages): la misma pantalla que la de
+     Google, pero con la cámara en vivo y la lista de la carroza en el móvil.
+     Escanear y buscar no esperan a nadie; las entradas se apuntan aquí al momento
+     y se mandan a Google detrás, aunque se vaya la cobertura. */
+  :root {
+    color-scheme: dark;
+    --fondo: #0b0b0f; --panel: #14141b; --panel2: #1b1b24; --borde: #2a2a35;
+    --texto: #f4f4f6; --tenue: #9a9aa8;
+    --acento: #ff3399; --acento2: #ff7a45; --sobre-acento: #06121a;
+    --ok: #3ddc97; --ojo: #ffb547; --mal: #ff6b6b; --info: #6cb6ff;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh; color: var(--texto); background: var(--fondo);
+    font: 16px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased; -webkit-text-size-adjust: 100%;
+  }
+  button, input { font: inherit; color: inherit; }
+  .envoltorio { max-width: 30rem; margin: 0 auto; padding: calc(1rem + env(safe-area-inset-top, 0px)) max(1rem, env(safe-area-inset-right, 0px)) 6rem max(1rem, env(safe-area-inset-left, 0px)); display: grid; gap: .9rem; }
+  .barra { display: flex; justify-content: space-between; align-items: baseline; gap: .75rem; }
+  .barra b { font-size: .72rem; letter-spacing: .18em; text-transform: uppercase; }
+  .barra span { font-size: .8rem; color: var(--tenue); text-align: right; overflow-wrap: anywhere; }
+  .carroza { font-size: 1.6rem; font-weight: 800; letter-spacing: -.01em; margin: 0; overflow-wrap: anywhere; }
+  .aforo { background: var(--panel); border: 1px solid var(--borde); border-radius: 1rem; padding: .9rem 1rem; }
+  .aforo .cifras { display: flex; justify-content: space-between; align-items: baseline; gap: .5rem; }
+  .aforo .grande { font-size: 1.7rem; font-weight: 900; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+  .aforo .grande small { font-size: .95rem; font-weight: 600; color: var(--tenue); letter-spacing: 0; }
+  .aforo .faltan { font-weight: 700; color: var(--tenue); font-size: .9rem; }
+  .medidor { height: .45rem; border-radius: 99px; background: var(--panel2); margin-top: .6rem; overflow: hidden; }
+  .medidor i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--acento), var(--acento2)); transition: width .4s; }
+  .conexion { display: flex; align-items: center; gap: .45rem; font-size: .8rem; color: var(--tenue); margin-top: .55rem; }
+  .conexion i { width: .55rem; height: .55rem; border-radius: 50%; background: var(--tenue); flex: none; }
+  .conexion.bien i { background: var(--ok); }
+  .conexion.envia i { background: var(--info); }
+  .conexion.sin i { background: var(--ojo); }
+  .conexion.sin { color: var(--ojo); }
+
+  /* El visor: la cámara siempre mirando, con el marco donde va el QR. */
+  .visor { position: relative; border-radius: 1.2rem; overflow: hidden; background: #000; aspect-ratio: 4 / 3; max-width: 100%; }
+  .visor video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .visor .marco { position: absolute; inset: 14% 22%; border-radius: 1rem; box-shadow: 0 0 0 999px rgba(0,0,0,.35); border: 3px solid rgba(255,255,255,.85); pointer-events: none; }
+  .visor .marco.leido { border-color: var(--ok); }
+  .visor .pista { position: absolute; left: 0; right: 0; bottom: .6rem; text-align: center; font-size: .85rem; font-weight: 700; text-shadow: 0 1px 3px #000; pointer-events: none; }
+  .visor .apagado { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .5rem; padding: 1rem; text-align: center;
+    background: linear-gradient(120deg, var(--acento), var(--acento2)); color: var(--sobre-acento); border: 0; width: 100%; cursor: pointer; }
+  .visor .apagado svg { width: 2.2rem; height: 2.2rem; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .visor .apagado b { font-size: 1.3rem; }
+  .visor .apagado small { font-size: .85rem; opacity: .85; max-width: 20rem; }
+  .foto { justify-self: center; position: relative; font-size: .85rem; color: var(--tenue); text-decoration: underline; cursor: pointer; padding: .2rem .4rem; }
+  .foto input { position: absolute; inset: 0; opacity: 0; width: 100%; cursor: pointer; }
+
+  .buscar { display: grid; gap: .5rem; }
+  .buscar input { height: 3.1rem; border-radius: .9rem; border: 1px solid var(--borde); background: var(--panel); padding: 0 1rem; width: 100%; }
+  .buscar input::placeholder { color: var(--tenue); }
+  .resultados { display: grid; gap: .4rem; }
+  .resultados button { display: grid; gap: .1rem; text-align: left; padding: .7rem .9rem; border-radius: .9rem; border: 1px solid var(--borde); background: var(--panel); cursor: pointer; }
+  .resultados .linea { display: flex; justify-content: space-between; gap: .5rem; align-items: center; }
+  .resultados small { color: var(--tenue); font-size: .8rem; }
+  .vacio { color: var(--tenue); font-size: .85rem; text-align: center; padding: .4rem; }
+  .etq { font-size: .68rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; padding: .15rem .45rem; border-radius: .4rem; white-space: nowrap; }
+  .etq.ok { background: rgba(61,220,151,.14); color: var(--ok); }
+  .etq.ojo { background: rgba(255,181,71,.14); color: var(--ojo); }
+  .etq.mal { background: rgba(255,107,107,.14); color: var(--mal); }
+  .etq.info { background: rgba(108,182,255,.14); color: var(--info); }
+  h2 { margin: .3rem 0 0; font-size: .72rem; letter-spacing: .16em; text-transform: uppercase; color: var(--tenue); }
+  .ultimas { display: grid; background: var(--panel); border: 1px solid var(--borde); border-radius: 1rem; overflow: hidden; }
+  .ultimas div { display: flex; justify-content: space-between; gap: .75rem; padding: .6rem .9rem; font-size: .9rem; }
+  .ultimas div + div { border-top: 1px solid var(--borde); }
+  .ultimas span { color: var(--tenue); white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .aviso { min-height: 1.3rem; text-align: center; font-size: .9rem; color: var(--ojo); }
+  .fallos { display: grid; gap: .5rem; }
+  .fallo { border: 1px solid var(--mal); background: rgba(255,107,107,.1); border-radius: .9rem; padding: .75rem .9rem; display: grid; gap: .4rem; font-size: .9rem; }
+  .fallo b { color: var(--mal); }
+  .fallo button { justify-self: end; border: 1px solid var(--borde); background: var(--panel); border-radius: .7rem; padding: .45rem .9rem; font-weight: 700; cursor: pointer; }
+  .malo { text-align: center; padding: 4rem 1rem; }
+  .malo h1 { font-size: 1.4rem; margin: 0 0 .5rem; }
+  .malo p { color: var(--tenue); }
+
+  /* La hoja del grupo: tapa toda la pantalla. */
+  .hoja { position: fixed; inset: 0; z-index: 10; background: var(--fondo); overflow-y: auto; -webkit-overflow-scrolling: touch; }
+  .hoja .dentro { max-width: 30rem; margin: 0 auto; padding: env(safe-area-inset-top, 0px) 0 7rem; }
+  .franja { padding: 1.3rem 1rem 1.1rem; text-align: center; }
+  .franja .icono { font-size: 2.2rem; line-height: 1; font-weight: 900; }
+  .franja b { display: block; font-size: 1.35rem; margin-top: .3rem; text-wrap: balance; }
+  .franja p { margin: .25rem 0 0; font-size: .92rem; text-wrap: balance; }
+  .franja.ok { background: rgba(61,220,151,.14); color: var(--ok); }
+  .franja.ojo { background: rgba(255,181,71,.14); color: var(--ojo); }
+  .franja.mal { background: rgba(255,107,107,.15); color: var(--mal); }
+  .franja.info { background: rgba(108,182,255,.14); color: var(--info); }
+  .grupo { padding: 1rem 1rem .4rem; }
+  .grupo h1 { margin: 0; font-size: 1.4rem; letter-spacing: -.01em; overflow-wrap: anywhere; }
+  .grupo small { color: var(--tenue); }
+  .personas { display: grid; gap: .45rem; padding: .5rem 1rem; }
+  .persona { display: flex; align-items: center; gap: .8rem; padding: .75rem .9rem; border-radius: .9rem; border: 1px solid var(--borde); background: var(--panel); cursor: pointer; }
+  .persona input { width: 1.5rem; height: 1.5rem; flex: none; accent-color: var(--ok); }
+  .persona .quien { min-width: 0; flex: 1; }
+  .persona .quien b { display: block; overflow-wrap: anywhere; }
+  .persona .dni { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 1.05rem; letter-spacing: .08em; color: #d9d9e2; }
+  .persona.ya { opacity: .6; cursor: default; }
+  .persona.ya .marca { color: var(--info); font-size: .8rem; font-weight: 700; white-space: nowrap; }
+  .cobro { margin: .5rem 1rem 0; padding: .9rem 1rem; border-radius: .9rem; border: 1px dashed var(--ojo); color: var(--ojo); display: grid; gap: .5rem; }
+  .cobro b { font-size: 1.15rem; }
+  .cobro label { display: flex; align-items: center; gap: .6rem; color: var(--texto); }
+  .cobro input { width: 7rem; height: 2.8rem; border-radius: .7rem; border: 1px solid var(--borde); background: var(--panel); padding: 0 .8rem; }
+  .pie { position: fixed; left: 0; right: 0; bottom: 0; z-index: 11; background: linear-gradient(transparent, var(--fondo) 30%); padding: 1.2rem 1rem calc(1rem + env(safe-area-inset-bottom, 0px)); }
+  .pie .fila { max-width: 30rem; margin: 0 auto; display: grid; grid-template-columns: auto 1fr; gap: .6rem; }
+  .pie button { height: 3.6rem; border-radius: 1rem; border: 1px solid var(--borde); background: var(--panel); font-weight: 800; cursor: pointer; padding: 0 1.1rem; }
+  .pie .principal { background: var(--ok); color: #06140d; border: 0; font-size: 1.08rem; }
+  .pie .principal.cobrar { background: var(--ojo); color: #1d1200; }
+  .pie button:disabled { opacity: .45; cursor: default; }
+  .pie .error { max-width: 30rem; margin: 0 auto .5rem; text-align: center; color: var(--mal); font-size: .9rem; min-height: 1.2rem; }
+
+  .leyendo { position: fixed; inset: 0; z-index: 20; background: rgba(0,0,0,.8); display: grid; place-items: center; font-weight: 700; }
+  .tostada { position: fixed; left: 1rem; right: 1rem; bottom: calc(1rem + env(safe-area-inset-bottom, 0px)); z-index: 30; max-width: 28rem; margin: 0 auto;
+    background: var(--texto); color: var(--fondo); border-radius: 1rem; padding: .8rem 1rem; display: flex; align-items: center; justify-content: space-between; gap: .8rem; font-weight: 700; }
+  .tostada button { border: 0; background: transparent; color: #0b57d0; font-weight: 800; cursor: pointer; padding: .4rem; }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+  <div class="envoltorio malo" id="malo" hidden>
+    <h1>Este enlace de puerta no vale</h1>
+    <p id="maloTexto">Está apagado o mal copiado. Pide uno nuevo a quien organiza.</p>
+  </div>
+
+  <div class="envoltorio" id="pantalla" hidden>
+    <div class="barra"><b id="club">Puerta</b><span id="puerta"></span></div>
+    <h1 class="carroza" id="carroza">Cargando la lista…</h1>
+    <section class="aforo" aria-live="polite">
+      <div class="cifras"><span class="grande" id="dentro">…</span><span class="faltan" id="faltan"></span></div>
+      <div class="medidor"><i id="medidor"></i></div>
+      <div class="conexion" id="conexion"><i></i><span id="conexionTexto">Conectando…</span></div>
+    </section>
+    <div class="visor">
+      <video id="video" playsinline muted autoplay></video>
+      <div class="marco" id="marco" hidden></div>
+      <div class="pista" id="pista" hidden>Apunta al QR del pase</div>
+      <button type="button" class="apagado" id="camara">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M7 12h10"/></svg>
+        <b>Escanear pases</b>
+        <small id="camaraTexto">Toca para abrir la cámara</small>
+      </button>
+    </div>
+    <label class="foto">¿No va la cámara? Haz una foto al QR
+      <input type="file" accept="image/*" capture="environment" id="foto" aria-label="Escanear pase con una foto">
+    </label>
+    <div class="fallos" id="fallos" role="alert"></div>
+    <div class="aviso" id="aviso" role="status"></div>
+    <div class="buscar">
+      <input type="search" id="buscar" placeholder="Sin pase: nombre, código o cifras del DNI" autocomplete="off" aria-label="Buscar grupo">
+      <div class="resultados" id="resultados"></div>
+    </div>
+    <h2>Últimas entradas</h2>
+    <div class="ultimas" id="ultimas"><div><span>Aún no ha entrado nadie.</span></div></div>
+  </div>
+
+  <div class="hoja" id="hoja" hidden role="dialog" aria-modal="true" aria-labelledby="hojaTitulo">
+    <div class="dentro" id="hojaDentro"></div>
+  </div>
+  <div class="pie" id="pie" hidden>
+    <div class="error" id="hojaError" role="alert"></div>
+    <div class="fila"><button type="button" id="volver">Volver</button><button type="button" class="principal" id="entrar"></button></div>
+  </div>
+  <div class="leyendo" id="leyendo" hidden><span id="leyendoTexto">Leyendo el pase…</span></div>
+  <div class="tostada" id="tostada" hidden role="status"><span id="tostadaTexto"></span><button type="button" id="deshacer">Deshacer</button></div>
+
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js" integrity="sha384-hStSInNIZ8ljtOVrmrgf7zdHMapaLBWoSnPTtF0nzsybp4+LuhDz6sHuEVpWIX8o" crossorigin="anonymous"></script>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  function esc(t) { return String(t == null ? '' : t).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function euros(n) { return (Number.isInteger(n) ? String(n) : n.toFixed(2).replace('.', ',')) + ' €'; }
+  function personas(n) { return n === 1 ? '1 persona' : n + ' personas'; }
+  function hora(t) { var d = new Date(t); return ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2); }
+  function sinTildes(t) { return String(t == null ? '' : t).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, ''); }
+  function nuevoId() {
+    if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+    var b = new Uint8Array(16); crypto.getRandomValues(b);
+    return Array.prototype.map.call(b, function (x) { return ('0' + x.toString(16)).slice(-2); }).join('');
+  }
+
+  /* ---------- El enlace: #s=<despliegue de Google>&k=<clave de la puerta> ----------
+     Va detrás de «#»: el navegador nunca lo manda a GitHub. Sólo vale un despliegue
+     de Google (en local, para probar, también ?api= en la propia máquina). */
+  var h = new URLSearchParams(location.hash.slice(1));
+  var LLAVE = String(h.get('k') || '').toLowerCase();
+  var S = String(h.get('s') || '');
+  var enLocal = /^(127\.0\.0\.1|localhost)$/.test(location.hostname);
+  var API = /^AKfy[A-Za-z0-9_-]{20,120}$/.test(S) ? 'https://script.google.com/macros/s/' + S + '/exec'
+    : enLocal && /^http:\/\/(127\.0\.0\.1|localhost):\d+\/exec$/.test(h.get('api') || '') ? h.get('api') : '';
+  if (!/^[a-f0-9]{32}$/.test(LLAVE) || !API) { cerrar(''); return; }
+  $('pantalla').hidden = false;
+
+  /* ---------- Lo guardado en el móvil ----------
+     La lista (nombres y DNI tapado de esta carroza) y las entradas sin mandar. Se
+     borra todo si el enlace deja de valer, y la lista no se usa pasadas 18 horas. */
+  var PREFIJO = 'puerta-' + LLAVE.slice(0, 12) + '-';
+  function leer(k) { try { return JSON.parse(localStorage.getItem(PREFIJO + k) || 'null'); } catch (e) { return null; } }
+  function guardar(k, v) { try { localStorage.setItem(PREFIJO + k, JSON.stringify(v)); } catch (e) { /* sin sitio o privado: sigue en memoria */ } }
+  function borrarTodo() { ['lista', 'cola', 'fallos'].forEach(function (k) { try { localStorage.removeItem(PREFIJO + k); } catch (e) {} }); }
+
+  var base = leer('lista');                 // la última lista que dio Google
+  if (base && !(Date.now() - base.recibida < 18 * 3600000)) base = null;
+  var cola = leer('cola') || [];            // entradas y deshacer por mandar, en orden
+  var fallos = leer('fallos') || [];        // lo que Google no aceptó: hay que verlo
+  var conectado = null, ultimaVez = base ? base.recibida : 0;
+
+  /* ---------- Google ---------- */
+  function llamar(accion, datos) {
+    var cuerpo = Object.assign({ accion: accion, llave: LLAVE }, datos || {});
+    // Texto plano: así el navegador no pregunta antes (sin «preflight»).
+    return fetch(API, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(cuerpo), cache: 'no-store', redirect: 'follow' })
+      .then(function (r) { return r.text(); })
+      .then(function (t) {
+        var j = null;
+        try { j = JSON.parse(t); } catch (e) { j = null; }
+        if (!j) throw new Error('Google no responde bien.');   // sin red o página de error: se reintenta
+        if (!j.ok) { var e = new Error(j.error || 'Error'); e.deGoogle = true; throw e; }
+        return j.r;
+      });
+  }
+  function esEnlaceMalo(e) { return e && e.deGoogle && /no vale o está apagado|ya no está\. Pide uno nuevo/.test(e.message); }
+
+  // El enlace ya no vale: fuera los nombres del móvil.
+  function cerrar(texto) {
+    var pendientes = (cola || []).filter(function (o) { return o.tipo === 'entrar'; }).length;
+    parar();
+    borrarTodo();
+    $('pantalla').hidden = true; $('hoja').hidden = true; $('pie').hidden = true; $('tostada').hidden = true;
+    $('malo').hidden = false;
+    if (texto) $('maloTexto').textContent = texto;
+    if (pendientes) $('maloTexto').textContent += ' Quedaron ' + pendientes + ' entradas sin apuntar en la hoja: díselo a quien organiza.';
+  }
+
+  /* ---------- Lo que se ve = la lista de Google + lo apuntado aquí y aún sin mandar ---------- */
+  function vista() {
+    if (!base) return null;
+    var v = JSON.parse(JSON.stringify(base));
+    cola.forEach(function (o) { aplicar(v, o); });
+    return v;
+  }
+  function aplicar(v, o) {
+    var g = v.grupos.filter(function (x) { return x.id === o.id; })[0];
+    if (!g) return;
+    var n = 0;
+    g.personas.forEach(function (p) {
+      if (o.numeros.indexOf(p.n) === -1) return;
+      if (o.tipo === 'entrar' && !p.entro) { p.entro = o.hora; p.puerta = v.puerta; n++; }
+      if (o.tipo === 'deshacer' && p.entro) { p.entro = ''; p.puerta = ''; n--; }
+    });
+    if (!n) return;   // Google ya lo tenía: no se cuenta dos veces
+    g.entrados += n;
+    v.cuenta.dentro += n;
+    if (o.tipo === 'entrar') {
+      if (o.cobro.personas) {
+        g.pagados += o.cobro.personas;
+        g.estado = g.pagados >= g.total ? 'pagado' : 'parcial';
+      }
+      v.cuenta.ultimas.unshift({ grupo: g.grupo, n: n, hora: o.hora });
+      v.cuenta.ultimas = v.cuenta.ultimas.slice(0, 4);
+    }
+  }
+
+  /* ---------- Pintar ---------- */
+  function color(c) {
+    if (!c) return;
+    var r = document.documentElement.style, hex = /^#[0-9a-f]{6}$/i;
+    if (hex.test(c.a)) r.setProperty('--acento', c.a);
+    if (hex.test(c.b)) r.setProperty('--acento2', c.b);
+    if (hex.test(c.sobre)) r.setProperty('--sobre-acento', c.sobre);
+  }
+  function pintar() {
+    var v = vista();
+    if (!v) return;
+    color(v.color);
+    document.title = 'Puerta · ' + v.club;
+    $('club').textContent = 'Puerta · ' + v.club;
+    $('puerta').textContent = v.puerta;
+    $('carroza').textContent = v.carroza;
+    var c = v.cuenta;
+    $('dentro').innerHTML = c.dentro + ' <small>de ' + Math.max(c.esperados, c.dentro) + ' dentro</small>';
+    var faltan = c.esperados - c.dentro;
+    $('faltan').textContent = faltan > 0 ? 'Faltan ' + faltan : c.esperados ? 'Están todos' : '';
+    $('medidor').style.width = (c.esperados ? Math.min(100, Math.round(100 * c.dentro / c.esperados)) : 0) + '%';
+    $('ultimas').innerHTML = c.ultimas.length ? c.ultimas.map(function (u) {
+      return '<div><b>' + esc(u.grupo) + ' · ' + u.n + '</b><span>' + esc(u.hora) + '</span></div>';
+    }).join('') : '<div><span>Aún no ha entrado nadie.</span></div>';
+    pintarConexion();
+  }
+  function pintarConexion() {
+    var porMandar = cola.length, caja = $('conexion'), t;
+    if (conectado === false) {
+      caja.className = 'conexion sin';
+      t = 'Sin conexión' + (porMandar ? ' · ' + porMandar + ' por mandar (se mandan solas)' : '') + (ultimaVez ? ' · lista de las ' + hora(ultimaVez) : '');
+    } else if (porMandar) {
+      caja.className = 'conexion envia';
+      t = 'Mandando ' + porMandar + ' a la hoja…';
+    } else {
+      caja.className = 'conexion' + (conectado ? ' bien' : '');
+      t = conectado ? 'Al día · ' + hora(ultimaVez) : 'Conectando…';
+    }
+    $('conexionTexto').textContent = t;
+  }
+  function pintarFallos() {
+    $('fallos').innerHTML = fallos.map(function (f, i) {
+      return '<div class="fallo"><span><b>No se apuntó:</b> ' + esc(f.que) + '. ' + esc(f.motivo)
+        + (f.cobrado ? ' <b>Se cobraron ' + esc(f.cobrado) + ': apúntalo en el panel.</b>' : '') + '</span>'
+        + '<button type="button" data-fallo="' + i + '">Entendido</button></div>';
+    }).join('');
+  }
+  $('fallos').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-fallo]');
+    if (!b) return;
+    fallos.splice(Number(b.dataset.fallo), 1);
+    guardar('fallos', fallos);
+    pintarFallos();
+  });
+  function avisar(t) { $('aviso').textContent = t || ''; }
+  function esperando(texto) { $('leyendoTexto').textContent = texto || ''; $('leyendo').hidden = !texto; }
+
+  /* ---------- La lista: al abrir, cada 20 s y después de mandar ---------- */
+  var pidiendo = false, mandadas = 0;
+  function refrescar() {
+    if (pidiendo) return;
+    pidiendo = true;
+    var antes = mandadas;
+    llamar('lista').then(function (l) {
+      pidiendo = false;
+      conectado = true;
+      // Si entretanto se mandó algo, esta lista ya es vieja: se pide otra.
+      if (antes !== mandadas) { refrescar(); return; }
+      l.recibida = ultimaVez = Date.now();
+      base = l;
+      guardar('lista', base);
+      pintar();
+      if (!cola.length && !$('buscar').value.trim()) $('resultados').innerHTML = '';
+    }).catch(function (e) {
+      pidiendo = false;
+      if (esEnlaceMalo(e)) { cerrar(e.message); return; }
+      if (e.deGoogle) avisar(e.message); else conectado = false;
+      pintarConexion();
+    });
+  }
+  setInterval(function () { if (!document.hidden) refrescar(); }, 20000);
+  window.addEventListener('online', function () { refrescar(); mandar(); });
+  window.addEventListener('offline', function () { conectado = false; pintarConexion(); });
+
+  /* ---------- Mandar lo apuntado, de una en una y en orden ---------- */
+  var mandando = false, relojMandar = null, espera = 3000;
+  function mandar() {
+    clearTimeout(relojMandar);
+    if (mandando || !cola.length) { pintarConexion(); return; }
+    mandando = true;
+    var o = cola[0];
+    var llamada = o.tipo === 'entrar'
+      ? llamar('entrar', { id: o.id, numeros: o.numeros, cobro: o.cobro, op: { id: o.op, cuando: o.cuando } })
+      : llamar('deshacer', { id: o.id, numeros: o.numeros });
+    llamada.then(function (r) {
+      conectado = true; espera = 3000;
+      quitarDeLaCola(o);
+      // Lo que dice Google de ese grupo y del contador pasa a ser la lista.
+      if (base && r && r.grupo) {
+        base.grupos = base.grupos.map(function (g) { return g.id === r.grupo.id ? r.grupo : g; });
+        base.cuenta = r.cuenta;
+        guardar('lista', base);
+      }
+      if (r && r.yaEntraron && r.yaEntraron.length) avisar(o.grupo + ': ' + personas(r.yaEntraron.length) + ' ya había entrado por otra puerta.');
+      despues();
+    }).catch(function (e) {
+      if (esEnlaceMalo(e)) { mandando = false; cerrar(e.message); return; }
+      if (!e.deGoogle) {
+        // Sin red: se queda en la cola y se vuelve a probar, cada vez con más calma.
+        conectado = false; mandando = false;
+        pintarConexion();
+        relojMandar = setTimeout(mandar, espera);
+        espera = Math.min(espera * 2, 30000);
+        return;
+      }
+      quitarDeLaCola(o);
+      // Lo que Google no aceptó ya no se puede deshacer: fuera el aviso.
+      if (deshacible === o) { deshacible = null; $('tostada').hidden = true; }
+      if (o.tipo === 'entrar' && /ya habían entrado/.test(e.message)) avisar(o.grupo + ': ya habían entrado por otra puerta.');
+      else {
+        fallos.push({ que: (o.tipo === 'entrar' ? 'la entrada de ' : 'deshacer la entrada de ') + o.grupo + ' (' + personas(o.numeros.length) + ', ' + o.hora + ')',
+          motivo: e.message, cobrado: o.tipo === 'entrar' ? o.cobrado : '' });
+        guardar('fallos', fallos);
+        pintarFallos();
+      }
+      despues();
+    });
+    function despues() {
+      mandando = false; mandadas++;
+      pintar();
+      if (cola.length) mandar(); else refrescar();
+    }
+  }
+  function quitarDeLaCola(o) {
+    var i = cola.indexOf(o);
+    if (i !== -1) cola.splice(i, 1);
+    guardar('cola', cola);
+  }
+
+  /* ---------- Escanear: la cámara en vivo ---------- */
+  var video = $('video'), flujo = null, mirando = false, ultimoLeido = '', hastaOtraVez = 0, ultimoCuadro = 0;
+  var lienzo = document.createElement('canvas'), pincel = lienzo.getContext('2d', { willReadFrequently: true });
+  function encender() {
+    if (flujo && flujo.getVideoTracks().some(function (t) { return t.readyState === 'live'; })) return;
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { sinCamara('Este navegador no deja usar la cámara. Haz una foto al QR (abajo).'); return; }
+    $('camaraTexto').textContent = 'Abriendo la cámara…';
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false })
+      .then(function (s) { flujo = s; video.srcObject = s; return video.play(); })
+      .then(function () {
+        $('camara').hidden = true; $('marco').hidden = false; $('pista').hidden = false;
+        mirando = true;
+        requestAnimationFrame(mirar);
+        despierta();
+      })
+      .catch(function (e) {
+        sinCamara(e && e.name === 'NotAllowedError'
+          ? 'Sin permiso para la cámara. Dáselo en el navegador y toca aquí, o haz una foto al QR.'
+          : 'No se pudo abrir la cámara. Toca para probar otra vez, o haz una foto al QR.');
+      });
+  }
+  function sinCamara(texto) { parar(); $('camara').hidden = false; $('camaraTexto').textContent = texto; }
+  function parar() {
+    mirando = false;
+    if (flujo) flujo.getTracks().forEach(function (t) { t.stop(); });
+    flujo = null;
+    $('marco').hidden = true; $('pista').hidden = true;
+  }
+  $('camara').addEventListener('click', function () { sonido(); encender(); });
+
+  function mirar(t) {
+    if (!mirando) return;
+    requestAnimationFrame(mirar);
+    // Unas 8 lecturas por segundo; sólo con la pantalla principal delante.
+    if (t - ultimoCuadro < 120 || !$('hoja').hidden || !$('leyendo').hidden || video.readyState < 2 || !window.jsQR) return;
+    ultimoCuadro = t;
+    // El centro de la imagen, reducido: el QR va dentro del marco y así se lee rápido.
+    var vw = video.videoWidth, vh = video.videoHeight, lado = Math.min(vw, vh), w = 480;
+    lienzo.width = w; lienzo.height = w;
+    pincel.drawImage(video, (vw - lado) / 2, (vh - lado) / 2, lado, lado, 0, 0, w, w);
+    var q = jsQR(pincel.getImageData(0, 0, w, w).data, w, w, { inversionAttempts: 'dontInvert' });
+    if (!q || !q.data) return;
+    if (q.data === ultimoLeido && Date.now() < hastaOtraVez) return;
+    ultimoLeido = q.data;
+    $('marco').classList.add('leido');
+    setTimeout(function () { $('marco').classList.remove('leido'); }, 400);
+    pitido();
+    abrirLeido(q.data);
+  }
+
+  // El mismo pase delante de la cámara no se vuelve a abrir hasta 3 s después de cerrarlo.
+  function yaVisto() { hastaOtraVez = Date.now() + 3000; }
+
+  /* Lo que trae el QR: el enlace del pase o el código. Se reconoce por sus seis
+     primeras, igual que al teclear el código corto. */
+  function codigoDe(texto) {
+    var m = /[?&]pase=([A-Za-z0-9-]+)/.exec(texto);
+    var t = (m ? m[1] : texto).toUpperCase().replace(/[^A-Z0-9]/g, '');
+    return t.length === 10 || t.length === 6 ? t.slice(0, 6) : '';
+  }
+  function abrirLeido(texto) {
+    avisar('');
+    var v = vista();
+    if (!v) { avisar('Aún se está cargando la lista: un momento.'); return; }
+    var cod = codigoDe(texto);
+    if (!cod) { abrirHoja(null); return; }
+    var g = v.grupos.filter(function (x) { return x.codigo && x.codigo.replace('-', '') === cod; })[0];
+    if (g) { abrirHoja(g); return; }
+    // No es de esta carroza o no existe: Google lo sabe (si hay red).
+    if (conectado === false) { abrirHoja(null, 'No está en la lista de ' + v.carroza + '. Sin conexión no se puede mirar en las demás.'); return; }
+    esperando('Comprobando el pase…');
+    llamar('abrir', { texto: texto }).then(function (r) {
+      esperando('');
+      abrirHoja(r.noExiste ? null : r.grupo);
+    }).catch(function (e) {
+      esperando('');
+      if (esEnlaceMalo(e)) { cerrar(e.message); return; }
+      abrirHoja(null, 'No está en la lista de ' + v.carroza + '.');
+    });
+  }
+
+  /* Pitido al leer: la puerta es ruidosa, pero ayuda. El navegador sólo deja sonar
+     después de un toque, así que se prepara con el primero. */
+  var audio = null;
+  function sonido() {
+    try { audio = audio || new (window.AudioContext || window.webkitAudioContext)(); if (audio.state === 'suspended') audio.resume(); } catch (e) { audio = null; }
+  }
+  document.addEventListener('touchend', sonido, { passive: true });
+  document.addEventListener('click', sonido);
+  function pitido() {
+    if (navigator.vibrate) navigator.vibrate(60);
+    if (!audio) return;
+    try {
+      var o = audio.createOscillator(), g = audio.createGain();
+      o.frequency.value = 1320; g.gain.value = .15;
+      o.connect(g); g.connect(audio.destination);
+      o.start(); o.stop(audio.currentTime + .09);
+    } catch (e) { /* sin sonido */ }
+  }
+
+  // Pantalla siempre encendida mientras se escanea (si el móvil lo permite).
+  var vela = null;
+  function despierta() {
+    if (!('wakeLock' in navigator) || vela) return;
+    navigator.wakeLock.request('screen').then(function (w) { vela = w; w.addEventListener('release', function () { vela = null; }); }).catch(function () {});
+  }
+  document.addEventListener('visibilitychange', function () {
+    if (document.hidden) { parar(); return; }
+    refrescar(); mandar();
+    if ($('camara').hidden || flujo) encender();
+  });
+
+  /* ---------- Escanear con una foto (si la cámara en vivo no va) ---------- */
+  function cargarImagen(archivo) {
+    if (window.createImageBitmap) return createImageBitmap(archivo);
+    return new Promise(function (ok, mal) {
+      var img = new Image(), url = URL.createObjectURL(archivo);
+      img.onload = function () { URL.revokeObjectURL(url); ok(img); };
+      img.onerror = function () { URL.revokeObjectURL(url); mal(new Error('imagen')); };
+      img.src = url;
+    });
+  }
+  function leerQr(img) {
+    var tamanos = [1200, 800, 1800];
+    for (var i = 0; i < tamanos.length; i++) {
+      var k = Math.min(1, tamanos[i] / Math.max(img.width, img.height));
+      var w = Math.round(img.width * k), hh = Math.round(img.height * k);
+      var c = document.createElement('canvas');
+      c.width = w; c.height = hh;
+      var x = c.getContext('2d');
+      x.drawImage(img, 0, 0, w, hh);
+      var r = jsQR(x.getImageData(0, 0, w, hh).data, w, hh, { inversionAttempts: 'attemptBoth' });
+      if (r && r.data) return r.data;
+      if (k === 1) break;
+    }
+    return '';
+  }
+  $('foto').addEventListener('change', function () {
+    var archivo = this.files && this.files[0];
+    this.value = '';
+    if (!archivo) return;
+    if (!window.jsQR) { avisar('No se ha cargado el lector. Revisa la conexión y recarga, o busca por nombre.'); return; }
+    esperando('Leyendo el QR…');
+    cargarImagen(archivo).then(function (img) {
+      var texto = leerQr(img);
+      esperando('');
+      if (!texto) { avisar('No se ve el QR. Que salga entero y nítido, o busca por nombre.'); return; }
+      abrirLeido(texto);
+    }).catch(function () { esperando(''); avisar('No se pudo abrir la foto. Prueba otra vez.'); });
+  });
+
+  /* ---------- Buscar, en la lista del móvil ---------- */
+  function buscar(texto) {
+    var v = vista();
+    if (!v) return null;
+    var q = sinTildes(texto).trim().replace(/\s+/g, ' ').slice(0, 60);
+    if (q.length < 2) return [];
+    var palabras = q.split(' ');
+    var compacto = q.toUpperCase().replace(/[^A-Z0-9]/g, '');
+    var cifras = /^\d{3,}$/.test(q.replace(/\s/g, '')) ? q.replace(/\s/g, '') : '';
+    var encontrados = [];
+    v.grupos.some(function (g) {
+      var quien = '';
+      if (compacto.length === 6 && g.codigo && g.codigo.replace('-', '') === compacto) quien = 'Código ' + g.codigo;
+      g.personas.some(function (p) {
+        if (quien) return true;
+        if (cifras && String(p.dni).replace(/\D/g, '').indexOf(cifras) !== -1) quien = p.nombre + ' · ' + p.dni;
+        else if (!cifras && palabras.every(function (w) { return sinTildes(p.nombre).indexOf(w) !== -1; })) quien = p.nombre;
+        return !!quien;
+      });
+      if (quien) encontrados.push({ g: g, quien: quien });
+      return encontrados.length >= 8;
+    });
+    return encontrados;
+  }
+  function pintarBusqueda() {
+    var r = buscar($('buscar').value);
+    if (r === null) { $('resultados').innerHTML = '<div class="vacio">Aún se está cargando la lista…</div>'; return; }
+    if (!$('buscar').value.trim() || $('buscar').value.trim().length < 2) { $('resultados').innerHTML = ''; return; }
+    $('resultados').innerHTML = r.length ? r.map(function (x) {
+      var g = x.g;
+      return '<button type="button" data-g="' + esc(g.id) + '"><span class="linea"><b>' + esc(g.grupo) + '</b>' + etiqueta(g.estado, g.entrados, g.total) + '</span>'
+        + '<small>' + esc(x.quien) + ' · ' + personas(g.total) + (g.entrados ? ' · ' + g.entrados + ' dentro' : '') + '</small></button>';
+    }).join('') : '<div class="vacio">Nadie con eso en ' + esc(vista().carroza) + '.</div>';
+  }
+  $('buscar').addEventListener('input', pintarBusqueda);
+  $('resultados').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-g]');
+    if (!b) return;
+    var g = (vista().grupos.filter(function (x) { return x.id === b.dataset.g; }))[0];
+    if (g) abrirHoja(g);
+  });
+  function etiqueta(estado, entrados, total) {
+    if (entrados && entrados >= total) return '<span class="etq info">Dentro</span>';
+    return {
+      pagado: '<span class="etq ok">Pagado</span>', invitacion: '<span class="etq ok">Invitación</span>',
+      parcial: '<span class="etq ojo">Falta pago</span>', pendiente: '<span class="etq ojo">Pendiente</span>',
+      sinPagar: '<span class="etq mal">Sin pagar</span>', anulado: '<span class="etq mal">Anulado</span>'
+    }[estado] || '';
+  }
+
+  /* ---------- La hoja del grupo ---------- */
+  var actual = null, motivo = '';
+  function abrirHoja(g, porQue) {
+    actual = g; motivo = porQue || '';
+    $('hojaError').textContent = '';
+    pintarHoja();
+    $('hoja').hidden = false; $('pie').hidden = false;
+    $('hoja').scrollTop = 0;
+    if (!$('entrar').hidden) $('entrar').focus();
+  }
+  function cerrarHoja() { actual = null; $('hoja').hidden = true; $('pie').hidden = true; yaVisto(); }
+  $('volver').addEventListener('click', cerrarHoja);
+
+  function puedeEntrar(g) { return g && g.enCarroza && g.estado !== 'anulado' && g.estado !== 'sinPagar'; }
+  function marcados() {
+    return Array.prototype.map.call(document.querySelectorAll('#hojaDentro input[data-n]:checked'), function (i) { return Number(i.dataset.n); });
+  }
+  function cuantosCobrar(g, n) {
+    if (g.estado !== 'parcial' && g.estado !== 'pendiente') return 0;
+    return Math.max(0, g.entrados + n - g.pagados);
+  }
+
+  function franja(g) {
+    var carroza = vista() ? vista().carroza : '';
+    if (!g) return ['mal', '✗', 'Este QR no es un pase válido', motivo || 'No existe o se ha anulado. Busca al grupo por nombre.'];
+    if (!g.enCarroza) return ['ojo', '!', 'Va en otra carroza', 'Este grupo va en ' + g.carrozas.join(' y ') + ', no en ' + carroza + '.'];
+    if (g.estado === 'anulado') return ['mal', '✗', 'Pase anulado', 'El grupo ya no va. Que hablen con la organización.'];
+    if (g.estado === 'sinPagar') return ['mal', '✗', 'Falta el pago', 'No se puede pagar en la puerta. Que hablen con la organización.'];
+    var faltan = g.personas.filter(function (p) { return !p.entro; }).length;
+    if (!faltan) return ['info', '✓', 'Ya entraron todos', 'Entraron ' + personas(g.entrados) + '. Si es otro grupo, busca por nombre.'];
+    if (g.estado === 'pendiente') return ['ojo', '€', 'Pendiente de pago', 'Cobra antes de dejar pasar.'];
+    if (g.estado === 'parcial') return ['ojo', '€', 'Pagado ' + g.pagados + ' de ' + g.total, 'Cobra a los que faltan por pagar.'];
+    var dentro = g.entrados ? ' Ya entraron ' + g.entrados + '; faltan ' + faltan + '.' : '';
+    return ['ok', '✓', g.estado === 'invitacion' ? 'Invitación válida' : 'Pase válido', 'Comprueba cada DNI.' + dentro];
+  }
+
+  function pintarHoja() {
+    var g = actual, f = franja(g);
+    var html = '<div class="franja ' + f[0] + '"><div class="icono" aria-hidden="true">' + f[1] + '</div><b id="hojaTitulo">' + esc(f[2]) + '</b><p>' + esc(f[3]) + '</p></div>';
+    if (g) {
+      html += '<div class="grupo"><h1>' + esc(g.grupo) + '</h1><small>' + personas(g.total) + (g.codigo ? ' · ' + esc(g.codigo) : '') + ' · ' + esc(g.carrozas.join(', ')) + '</small></div>';
+      var abierto = puedeEntrar(g);
+      html += '<div class="personas">' + g.personas.map(function (p) {
+        if (p.entro) return '<div class="persona ya"><div class="quien"><b>' + esc(p.nombre) + '</b><span class="dni">' + esc(p.dni) + '</span></div>'
+          + '<span class="marca">Entró ' + esc(p.entro) + '</span></div>';
+        return '<label class="persona">' + (abierto ? '<input type="checkbox" data-n="' + p.n + '" checked>' : '')
+          + '<div class="quien"><b>' + esc(p.nombre) + '</b><span class="dni">' + esc(p.dni) + '</span></div></label>';
+      }).join('') + '</div><div id="cobro"></div>';
+    }
+    $('hojaDentro').innerHTML = html;
+    pintarBoton();
+  }
+
+  function pintarBoton() {
+    var g = actual, b = $('entrar');
+    if (!puedeEntrar(g) || !g.personas.some(function (p) { return !p.entro; })) {
+      b.hidden = true; $('volver').textContent = 'Volver'; $('pie').querySelector('.fila').style.gridTemplateColumns = '1fr';
+      return;
+    }
+    b.hidden = false; $('pie').querySelector('.fila').style.gridTemplateColumns = '';
+    var n = marcados().length, cobrar = cuantosCobrar(g, n), PRECIO = g.precio;
+    var importe = cobrar ? (PRECIO ? PRECIO * cobrar : null) : 0;
+    var caja = $('cobro');
+    if (cobrar) {
+      var previo = caja.querySelector('input') ? caja.querySelector('input').value : '';
+      caja.innerHTML = '<div class="cobro"><b>Cobrar ' + (PRECIO ? euros(importe) + '</b><span>' + cobrar + ' × ' + euros(PRECIO) + (g.estado === 'parcial' ? ' · los que faltan' : '') + '</span>'
+        : personas(cobrar) + '</b><label>Cobrado <input type="text" inputmode="decimal" id="euros" placeholder="0" value="' + esc(previo) + '"> €</label>') + '</div>';
+    } else caja.innerHTML = '';
+    b.classList.toggle('cobrar', !!cobrar);
+    b.disabled = !n;
+    var entran = n === 1 ? 'entra 1' : 'entran los ' + n;
+    b.textContent = !n ? 'Marca quién entra' : cobrar ? 'Cobrados ' + (PRECIO ? euros(importe) : '') + ' · ' + entran : entran.charAt(0).toUpperCase() + entran.slice(1);
+  }
+  $('hojaDentro').addEventListener('change', function (e) { if (e.target.dataset.n) pintarBoton(); });
+  $('hojaDentro').addEventListener('input', function (e) {
+    if (e.target.id !== 'euros') return;
+    var n = marcados().length, entran = n === 1 ? 'entra 1' : 'entran los ' + n;
+    var v = e.target.value.trim();
+    $('entrar').textContent = 'Cobrados ' + (v ? v.replace('.', ',') + ' €' : '') + ' · ' + entran;
+  });
+
+  // Entran: se apunta aquí al momento y se manda a Google detrás.
+  $('entrar').addEventListener('click', function () {
+    var g = actual, lista = marcados();
+    if (!g || !lista.length) return;
+    var cobrar = cuantosCobrar(g, lista.length), cobro = { personas: cobrar, euros: 0 }, PRECIO = g.precio, cobrado = '';
+    if (cobrar) {
+      if (PRECIO) { cobro.euros = PRECIO * cobrar; cobrado = euros(cobro.euros); }
+      else {
+        cobro.euros = ($('euros') && $('euros').value || '').trim();
+        if (!/^\d+([.,]\d{1,2})?$/.test(cobro.euros) || !Number(cobro.euros.replace(',', '.'))) { $('hojaError').textContent = 'Escribe cuánto has cobrado.'; $('euros').focus(); return; }
+        cobrado = euros(Number(cobro.euros.replace(',', '.')));
+      }
+    }
+    var ahora = Date.now();
+    var o = { tipo: 'entrar', op: nuevoId(), cuando: ahora, hora: hora(ahora), id: g.id, grupo: g.grupo, numeros: lista, cobro: cobro, cobrado: cobrado };
+    cola.push(o);
+    guardar('cola', cola);
+    cerrarHoja();
+    $('buscar').value = ''; $('resultados').innerHTML = '';
+    pintar();
+    tostada((lista.length === 1 ? 'Entra 1' : 'Entran ' + lista.length) + ' · ' + g.grupo + (cobrado ? ' · cobrados ' + cobrado : ''), o);
+    mandar();
+  });
+
+  /* ---------- Aviso con «Deshacer» ---------- */
+  var relojTostada = null, deshacible = null;
+  function tostada(texto, o) {
+    clearTimeout(relojTostada);
+    deshacible = o || null;
+    $('tostadaTexto').textContent = texto;
+    $('deshacer').hidden = !o;
+    $('tostada').hidden = false;
+    relojTostada = setTimeout(function () { $('tostada').hidden = true; deshacible = null; }, o ? 15000 : 4000);
+  }
+  $('deshacer').addEventListener('click', function () {
+    var o = deshacible;
+    if (!o) return;
+    deshacible = null;
+    var i = cola.indexOf(o), sinMandar = i > 0 || (i === 0 && !mandando);
+    // Si aún no ha salido hacia Google, basta con quitarla; si ya salió, se deshace allí.
+    if (sinMandar) quitarDeLaCola(o);
+    else {
+      cola.push({ tipo: 'deshacer', op: nuevoId(), cuando: Date.now(), hora: hora(Date.now()), id: o.id, grupo: o.grupo, numeros: o.numeros, cobro: { personas: 0 } });
+      guardar('cola', cola);
+      mandar();
+    }
+    pintar();
+    tostada('Entrada deshecha' + (o.cobrado && !sinMandar ? '. El cobro sigue apuntado: si fue un error, quítalo en el panel.' : '.'));
+  });
+
+  /* ---------- Arranque ---------- */
+  pintar();
+  pintarFallos();
+  refrescar();
+  mandar();
+  encender();
+})();
+</script>
+</body>
+</html>
