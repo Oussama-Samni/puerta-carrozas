@@ -36,9 +36,6 @@
 
   /* ---------- La cámara: toda la pantalla ---------- */
   #video { position: fixed; inset: 0; width: 100%; height: 100%; object-fit: cover; background: #000; }
-  .pista { position: fixed; left: 0; right: 0; top: 50%; transform: translateY(-50%); text-align: center; pointer-events: none;
-    font-size: 1.2rem; font-weight: 800; text-shadow: 0 2px 10px rgba(0,0,0,.9); padding: 0 2rem; }
-  .pista small { display: block; font-size: .92rem; font-weight: 500; opacity: .9; margin-top: .2rem; }
 
   /* Arriba: la carroza y cuántos han entrado. */
   .arriba { position: fixed; top: 0; left: 0; right: 0; z-index: 2;
@@ -47,9 +44,9 @@
   .arriba .donde { min-width: 0; }
   .arriba .donde b { display: block; font-size: 1.35rem; line-height: 1.15; overflow-wrap: anywhere; }
   .arriba .donde small { color: var(--tenue); font-size: .85rem; }
-  .arriba .cuenta { text-align: right; flex: none; }
-  .arriba .cuenta b { display: block; font-size: 1.8rem; font-weight: 900; line-height: 1; font-variant-numeric: tabular-nums; }
-  .arriba .cuenta small { color: var(--tenue); font-size: .8rem; }
+  .arriba .cuenta { display: flex; gap: 1.1rem; flex: none; text-align: right; }
+  .arriba .cuenta small { display: block; color: var(--tenue); font-size: .7rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+  .arriba .cuenta b { display: block; font-size: 1.8rem; font-weight: 900; line-height: 1.05; font-variant-numeric: tabular-nums; }
   .estado { display: inline-flex; align-items: center; gap: .4rem; margin-top: .35rem; padding: .2rem .6rem; border-radius: 99px; font-size: .8rem; font-weight: 700; }
   .estado.sin { background: rgba(255,176,59,.18); color: var(--ojo); }
   .estado.envia { background: rgba(95,176,255,.16); color: var(--info); }
@@ -60,8 +57,19 @@
     background: linear-gradient(transparent, rgba(0,0,0,.7) 45%); }
   .grande { width: 100%; max-width: 28rem; height: 3.8rem; border-radius: 1.1rem; border: 0; font-size: 1.15rem; font-weight: 800;
     display: flex; align-items: center; justify-content: center; gap: .6rem; }
-  .grande svg { width: 1.4rem; height: 1.4rem; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; flex: none; }
-  .claro { background: rgba(255,255,255,.95); color: #111; }
+  /* La búsqueda, sobre la cámara: los resultados salen encima de la caja. */
+  .caja { width: 100%; max-width: 28rem; height: 3.6rem; border-radius: 1.1rem; background: rgba(255,255,255,.96); color: #111; display: flex; align-items: center; gap: .6rem; padding: 0 .4rem 0 1rem; }
+  .caja svg { width: 1.3rem; height: 1.3rem; fill: none; stroke: #666; stroke-width: 2.4; stroke-linecap: round; flex: none; }
+  .caja input { flex: 1; min-width: 0; height: 100%; border: 0; background: none; color: #111; font-size: 1.1rem; outline: none; }
+  .caja input::placeholder { color: #777; }
+  .caja input::-webkit-search-cancel-button { display: none; }
+  .caja button { width: 2.6rem; height: 2.6rem; border-radius: 50%; border: 0; background: #e8e8ec; color: #333; font-size: 1rem; flex: none; }
+  .resultados { width: 100%; max-width: 28rem; max-height: 45vh; max-height: 45dvh; overflow-y: auto; -webkit-overflow-scrolling: touch; background: rgba(21,21,28,.97);
+    border-radius: 1.1rem; padding: .4rem; display: grid; gap: .3rem; align-content: start; box-shadow: 0 -6px 30px rgba(0,0,0,.5); }
+  .resultados button { display: grid; gap: .15rem; text-align: left; padding: .8rem .9rem; border-radius: .8rem; border: 0; background: var(--panel2); }
+  .resultados .linea { display: flex; justify-content: space-between; gap: .5rem; align-items: center; }
+  .resultados b { font-size: 1.05rem; }
+  .resultados small { color: var(--tenue); font-size: .85rem; }
   .enlacito { border: 0; background: none; color: var(--tenue); font-size: .85rem; text-decoration: underline; padding: .3rem .6rem; position: relative; }
   .enlacito input { position: absolute; inset: 0; opacity: 0; width: 100%; }
 
@@ -116,30 +124,12 @@
   @keyframes aparece { from { opacity: 0; } }
   @keyframes late { 0% { transform: scale(.5); } 70% { transform: scale(1.08); } 100% { transform: none; } }
 
-  /* Buscar sin pase: pantalla entera. */
-  .buscar { position: fixed; inset: 0; z-index: 5; background: var(--fondo); display: flex; flex-direction: column;
-    padding: calc(.8rem + env(safe-area-inset-top, 0px)) max(1rem, env(safe-area-inset-right, 0px)) 1rem max(1rem, env(safe-area-inset-left, 0px)); gap: .8rem; }
-  .buscar .fila { display: flex; gap: .6rem; max-width: 32rem; width: 100%; margin: 0 auto; }
-  .buscar input { flex: 1; min-width: 0; height: 3.6rem; border-radius: 1rem; border: 2px solid var(--borde); background: var(--panel); padding: 0 1rem; font-size: 1.1rem; }
-  .buscar input:focus { outline: none; border-color: var(--info); }
-  .buscar .fila button { flex: none; height: 3.6rem; padding: 0 1rem; border-radius: 1rem; border: 0; background: var(--panel2); font-weight: 800; }
-  .lista { overflow-y: auto; display: grid; gap: .5rem; align-content: start; max-width: 32rem; width: 100%; margin: 0 auto; }
-  .lista button { display: grid; gap: .15rem; text-align: left; padding: .9rem 1rem; border-radius: 1rem; border: 0; background: var(--panel); }
-  .lista .linea { display: flex; justify-content: space-between; gap: .5rem; align-items: center; }
-  .lista b { font-size: 1.08rem; }
-  .lista small { color: var(--tenue); font-size: .88rem; }
   .vacio { color: var(--tenue); text-align: center; padding: 1rem; }
   .etq { font-size: .72rem; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; padding: .2rem .5rem; border-radius: .45rem; white-space: nowrap; }
   .etq.ok { background: rgba(52,217,138,.16); color: var(--ok); }
   .etq.ojo { background: rgba(255,176,59,.16); color: var(--ojo); }
   .etq.mal { background: rgba(255,93,93,.16); color: var(--mal); }
   .etq.info { background: rgba(95,176,255,.16); color: var(--info); }
-  h2 { margin: .6rem 0 0; font-size: .75rem; letter-spacing: .16em; text-transform: uppercase; color: var(--tenue); }
-  .ultimas { display: grid; background: var(--panel); border-radius: 1rem; overflow: hidden; }
-  .ultimas div { display: flex; justify-content: space-between; gap: .75rem; padding: .7rem 1rem; font-size: .95rem; }
-  .ultimas div + div { border-top: 1px solid var(--borde); }
-  .ultimas span { color: var(--tenue); white-space: nowrap; font-variant-numeric: tabular-nums; }
-
   /* Pantallas de una sola cosa: empezar, sin cámara, enlace malo. */
   .sola { position: fixed; inset: 0; z-index: 10; background: radial-gradient(circle at 50% 30%, #1d1d27, #000 70%); display: grid; place-items: center; text-align: center;
     padding: 2rem max(1.5rem, env(safe-area-inset-right, 0px)) calc(2rem + env(safe-area-inset-bottom, 0px)) max(1.5rem, env(safe-area-inset-left, 0px)); }
@@ -159,9 +149,6 @@
   .fallo { max-width: 28rem; width: 100%; border: 2px solid var(--mal); background: rgba(40,10,10,.95); border-radius: 1rem; padding: .75rem 1rem; display: grid; gap: .5rem; font-size: .92rem; }
   .fallo b { color: var(--mal); }
   .fallo button { justify-self: end; border: 0; background: var(--panel2); border-radius: .8rem; padding: .55rem 1rem; font-weight: 800; }
-  .tostada { position: fixed; left: 1rem; right: 1rem; bottom: calc(8.2rem + env(safe-area-inset-bottom, 0px)); z-index: 4; max-width: 28rem; margin: 0 auto;
-    background: #fff; color: #111; border-radius: 1rem; padding: .7rem .8rem .7rem 1rem; display: flex; align-items: center; justify-content: space-between; gap: .8rem; font-weight: 700; box-shadow: 0 6px 24px rgba(0,0,0,.5); }
-  .tostada button { border: 0; background: #111; color: #fff; font-weight: 800; padding: .55rem .9rem; border-radius: .7rem; flex: none; }
   .leyendo { position: fixed; inset: 0; z-index: 9; background: rgba(0,0,0,.75); display: grid; place-items: center; font-weight: 800; font-size: 1.15rem; }
   .toque { position: fixed; left: -100px; top: 0; width: 1px; height: 1px; overflow: hidden; }
   [hidden] { display: none !important; }
@@ -170,26 +157,26 @@
 </head>
 <body>
   <video id="video" playsinline muted autoplay></video>
-  <div class="pista" id="pista" hidden>Apunta al QR del pase<small>No hace falta encuadrarlo</small></div>
 
   <header class="arriba" id="arriba" hidden>
     <div class="donde"><b id="carroza">…</b><small id="puerta"></small><div id="estado" class="estado" hidden></div></div>
-    <div class="cuenta"><b id="dentro">–</b><small id="deCuantos">dentro</small></div>
+    <div class="cuenta"><div><small>Dentro</small><b id="dentro">0</b></div><div><small>Faltan</small><b id="faltan">0</b></div></div>
   </header>
   <div class="avisos"><div class="fallos" id="fallos" role="alert"></div><div class="aviso" id="aviso" hidden role="status"></div></div>
 
   <div class="abajo" id="abajo" hidden>
-    <button type="button" class="grande claro" id="abrirBuscar">
+    <div class="resultados" id="resultados" hidden></div>
+    <div class="caja">
       <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-      Sin pase: buscar por nombre
-    </button>
+      <input type="search" id="texto" placeholder="Nombre o código" autocomplete="off" autocorrect="off" spellcheck="false" enterkeyhint="search" aria-label="Buscar por nombre o código">
+      <button type="button" id="borrar" hidden aria-label="Borrar la búsqueda">✕</button>
+    </div>
     <label class="enlacito">¿No va la cámara? Haz una foto al QR
       <input type="file" accept="image/*" capture="environment" id="foto" aria-label="Escanear el pase con una foto">
     </label>
   </div>
 
   <div class="destello" id="destello"></div>
-  <div class="tostada" id="tostada" hidden role="status"><span id="tostadaTexto"></span><button type="button" id="deshacer">Deshacer</button></div>
 
   <!-- La tarjeta del grupo -->
   <div class="velo" id="velo" hidden></div>
@@ -211,16 +198,6 @@
     <b id="hechoTitulo">Dentro</b><span id="hechoTexto"></span>
   </div>
 
-  <!-- Buscar sin pase -->
-  <section class="buscar" id="buscar" hidden role="dialog" aria-modal="true" aria-label="Buscar sin pase">
-    <div class="fila">
-      <input type="search" id="texto" placeholder="Nombre, código o cifras del DNI" autocomplete="off" enterkeyhint="search" aria-label="Buscar grupo">
-      <button type="button" id="cerrarBuscar">Volver</button>
-    </div>
-    <div class="lista" id="resultados"></div>
-    <div class="lista" id="ultimasCaja"><h2>Últimas entradas</h2><div class="ultimas" id="ultimas"></div></div>
-  </section>
-
   <!-- Empezar: el primer toque deja sonar el pitido y mantener la pantalla encendida -->
   <section class="sola" id="inicio" hidden>
     <div class="dentro">
@@ -241,7 +218,7 @@
         <li>Si el móvil pregunta, pulsa <b>Permitir</b>.</li>
       </ol>
       <button type="button" class="grande empezar" id="reintentarCamara">Activar la cámara</button>
-      <button type="button" class="enlacito" id="sinCamaraBuscar">Seguir sin cámara (buscar por nombre)</button>
+      <button type="button" class="enlacito" id="sinCamaraBuscar">Seguir sin cámara</button>
     </div>
   </section>
 
@@ -319,7 +296,7 @@
     var pendientes = cola.filter(function (o) { return o.tipo === 'entrar'; }).length;
     parar();
     if (PREFIJO) borrarTodo();
-    ['inicio', 'sinCamara', 'tarjeta', 'velo', 'buscar', 'tostada', 'arriba', 'abajo'].forEach(function (id) { $(id).hidden = true; });
+    ['inicio', 'sinCamara', 'tarjeta', 'velo', 'arriba', 'abajo'].forEach(function (id) { $(id).hidden = true; });
     $('malo').hidden = false;
     if (texto) $('maloTexto').textContent = texto;
     if (pendientes) $('maloTexto').textContent += ' Quedaron ' + pendientes + ' entradas sin apuntar en la hoja: díselo a quien organiza.';
@@ -368,29 +345,26 @@
     color(v.color);
     document.title = 'Puerta · ' + v.carroza;
     $('carroza').textContent = v.carroza;
-    $('puerta').textContent = v.club + ' · ' + v.puerta;
+    $('puerta').textContent = v.club + ', ' + v.puerta;
     $('inicioTitulo').textContent = v.carroza;
-    $('inicioTexto').textContent = v.club + ' · ' + v.puerta + '. Pon el QR de cada pase delante de la cámara.';
+    $('inicioTexto').textContent = v.club + ', ' + v.puerta + '.';
     $('empezar').disabled = false;
     var c = v.cuenta;
-    $('dentro').textContent = c.dentro + ' / ' + Math.max(c.esperados, c.dentro);
-    $('deCuantos').textContent = c.esperados > c.dentro ? 'dentro · faltan ' + (c.esperados - c.dentro) : 'dentro';
-    $('ultimas').innerHTML = c.ultimas.length ? c.ultimas.map(function (u) {
-      return '<div><b>' + esc(u.grupo) + ' · ' + u.n + '</b><span>' + esc(u.hora) + '</span></div>';
-    }).join('') : '<div><span>Aún no ha entrado nadie.</span></div>';
+    $('dentro').textContent = c.dentro;
+    $('faltan').textContent = Math.max(0, c.esperados - c.dentro);
     pintarEstado();
   }
   // La conexión sólo se enseña cuando hay algo que contar.
   function pintarEstado() {
     var e = $('estado'), n = cola.length;
-    if (conectado === false) { e.className = 'estado sin'; e.textContent = 'Sin conexión · se guarda todo' + (n ? ' (' + n + ' por mandar)' : ''); e.hidden = false; }
-    else if (n > 1) { e.className = 'estado envia'; e.textContent = 'Guardando ' + n + '…'; e.hidden = false; }
+    if (conectado === false) { e.className = 'estado sin'; e.textContent = 'Sin conexión' + (n ? ': ' + n + ' sin enviar' : ''); e.hidden = false; }
+    else if (n > 1) { e.className = 'estado envia'; e.textContent = 'Enviando ' + n; e.hidden = false; }
     else e.hidden = true;
   }
   function pintarFallos() {
     $('fallos').innerHTML = fallos.map(function (f, i) {
-      return '<div class="fallo"><span><b>No se apuntó en la hoja:</b> ' + esc(f.que) + '. ' + esc(f.motivo)
-        + (f.cobrado ? ' <b>Se cobraron ' + esc(f.cobrado) + ': apúntalo en el panel.</b>' : '') + '</span>'
+      return '<div class="fallo"><span><b>No registrado:</b> ' + esc(f.que) + '. ' + esc(f.motivo)
+        + (f.cobrado ? ' <b>Cobrado ' + esc(f.cobrado) + ': anótalo en el panel.</b>' : '') + '</span>'
         + '<button type="button" data-fallo="' + i + '">Entendido</button></div>';
     }).join('');
   }
@@ -428,7 +402,7 @@
       pidiendo = false;
       if (esEnlaceMalo(e)) { cerrar(e.message); return; }
       if (e.deGoogle) avisar(e.message); else conectado = false;
-      if (!base) $('inicioTexto').textContent = 'No hay conexión para cargar la lista. Busca cobertura: se carga sola.';
+      if (!base) $('inicioTexto').textContent = 'Sin conexión. La lista se cargará al recuperarla.';
       pintarEstado();
     });
   }
@@ -468,11 +442,9 @@
         return;
       }
       quitarDeLaCola(o);
-      // Lo que Google no aceptó ya no se puede deshacer: fuera el aviso.
-      if (deshacible === o) { deshacible = null; $('tostada').hidden = true; }
       if (o.tipo === 'entrar' && /ya habían entrado/.test(e.message)) avisar(o.grupo + ': ya habían entrado por otra puerta.');
       else {
-        fallos.push({ que: (o.tipo === 'entrar' ? 'la entrada de ' : 'deshacer la entrada de ') + o.grupo + ' (' + personas(o.numeros.length) + ', ' + o.hora + ')',
+        fallos.push({ que: o.grupo + ' (' + personas(o.numeros.length) + ', ' + o.hora + ')',
           motivo: e.message, cobrado: o.tipo === 'entrar' ? o.cobrado : '' });
         guardar('fallos', fallos);
         pintarFallos();
@@ -501,7 +473,6 @@
       .then(function (s) { flujo = s; video.srcObject = s; return video.play(); })
       .then(function () {
         $('sinCamara').hidden = true;
-        $('pista').hidden = false;
         mirando = true;
         requestAnimationFrame(mirar);
       })
@@ -520,12 +491,12 @@
     mirando = false;
     if (flujo) flujo.getTracks().forEach(function (t) { t.stop(); });
     flujo = null;
-    $('pista').hidden = true;
   }
   $('reintentarCamara').addEventListener('click', encender);
-  $('sinCamaraBuscar').addEventListener('click', function () { $('sinCamara').hidden = true; abrirBuscar(); });
+  $('sinCamaraBuscar').addEventListener('click', function () { $('sinCamara').hidden = true; $('texto').focus(); });
 
-  function ocupada() { return !$('tarjeta').hidden || !$('buscar').hidden || !$('leyendo').hidden || !$('hecho').hidden || !$('inicio').hidden; }
+  // Mientras se escribe en la búsqueda, la cámara no abre nada.
+  function ocupada() { return !$('tarjeta').hidden || !$('leyendo').hidden || !$('hecho').hidden || !$('inicio').hidden || document.activeElement === $('texto') || !!$('texto').value; }
   function mirar(t) {
     if (!mirando) return;
     requestAnimationFrame(mirar);
@@ -565,13 +536,13 @@
   }
   function abrirLeido(texto) {
     var v = vista();
-    if (!v) { avisar('Aún se está cargando la lista: un momento.'); return; }
+    if (!v) { avisar('Cargando la lista…'); return; }
     var cod = codigoDe(texto);
-    if (!cod) { abrirTarjeta(null, 'Este QR no es un pase de ' + v.club + '.'); return; }
+    if (!cod) { abrirTarjeta(null, 'No es un pase.'); return; }
     var g = v.grupos.filter(function (x) { return x.codigo && x.codigo.replace('-', '') === cod; })[0];
     if (g) { abrirTarjeta(g); return; }
     // No es de esta carroza o no existe: Google lo sabe (si hay red).
-    if (conectado === false) { abrirTarjeta(null, 'No está en la lista de ' + v.carroza + '.'); return; }
+    if (conectado === false) { abrirTarjeta(null, 'No está en esta carroza.'); return; }
     esperando('Comprobando el pase…');
     llamar('abrir', { texto: texto }).then(function (r) {
       esperando('');
@@ -579,7 +550,7 @@
     }).catch(function (e) {
       esperando('');
       if (esEnlaceMalo(e)) { cerrar(e.message); return; }
-      abrirTarjeta(null, 'No está en la lista de ' + v.carroza + '.');
+      abrirTarjeta(null, 'No está en esta carroza.');
     });
   }
 
@@ -671,26 +642,19 @@
     var archivo = this.files && this.files[0];
     this.value = '';
     if (!archivo) return;
-    if (!window.jsQR) { avisar('No se ha cargado el lector. Revisa la conexión y recarga, o busca por nombre.'); return; }
+    if (!window.jsQR) { avisar('Lector no disponible. Recarga la página.'); return; }
     esperando('Leyendo el QR…');
     cargarImagen(archivo).then(function (img) {
       var texto = leerQr(img);
       esperando('');
-      if (!texto) { avisar('No se ve el QR. Que salga entero y nítido, o busca por nombre.'); return; }
+      if (!texto) { avisar('QR no detectado. Prueba otra foto.'); return; }
       abrirLeido(texto);
-    }).catch(function () { esperando(''); avisar('No se pudo abrir la foto. Prueba otra vez.'); });
+    }).catch(function () { esperando(''); avisar('No se pudo abrir la foto.'); });
   });
 
-  /* ---------- Buscar sin pase, en la lista del móvil ---------- */
-  function abrirBuscar() {
-    $('buscar').hidden = false;
-    $('texto').value = '';
-    pintarBusqueda();
-    setTimeout(function () { $('texto').focus(); }, 50);
-  }
-  function cerrarBuscar() { $('buscar').hidden = true; $('texto').blur(); }
-  $('abrirBuscar').addEventListener('click', abrirBuscar);
-  $('cerrarBuscar').addEventListener('click', cerrarBuscar);
+  /* ---------- Buscar, en la lista del móvil: resultados encima de la caja ---------- */
+  function limpiarBusqueda() { $('texto').value = ''; $('texto').blur(); pintarBusqueda(); }
+  $('borrar').addEventListener('click', limpiarBusqueda);
   function buscar(texto) {
     var v = vista();
     if (!v) return null;
@@ -705,7 +669,7 @@
       if (compacto.length === 6 && g.codigo && g.codigo.replace('-', '') === compacto) quien = 'Código ' + g.codigo;
       g.personas.some(function (p) {
         if (quien) return true;
-        if (cifras && String(p.dni).replace(/\D/g, '').indexOf(cifras) !== -1) quien = p.nombre + ' · ' + p.dni;
+        if (cifras && String(p.dni).replace(/\D/g, '').indexOf(cifras) !== -1) quien = p.nombre + ', ' + p.dni;
         else if (!cifras && palabras.every(function (w) { return sinTildes(p.nombre).indexOf(w) !== -1; })) quien = p.nombre;
         return !!quien;
       });
@@ -715,28 +679,29 @@
     return encontrados;
   }
   function pintarBusqueda() {
-    var texto = $('texto').value.trim(), r = buscar(texto);
-    $('ultimasCaja').hidden = texto.length >= 2;
-    if (r === null) { $('resultados').innerHTML = '<div class="vacio">Aún se está cargando la lista…</div>'; return; }
-    if (texto.length < 2) { $('resultados').innerHTML = '<div class="vacio">Escribe un nombre, el código del pase (ABC-DEF) o cifras del DNI.</div>'; return; }
-    $('resultados').innerHTML = r.length ? r.map(function (x) {
+    var texto = $('texto').value.trim(), r = buscar(texto), caja = $('resultados');
+    $('borrar').hidden = !texto;
+    caja.hidden = texto.length < 2;
+    if (caja.hidden) { caja.innerHTML = ''; return; }
+    if (r === null) { caja.innerHTML = '<div class="vacio">Cargando la lista…</div>'; return; }
+    caja.innerHTML = r.length ? r.map(function (x) {
       var g = x.g;
       return '<button type="button" data-g="' + esc(g.id) + '"><span class="linea"><b>' + esc(g.grupo) + '</b>' + etiqueta(g.estado, g.entrados, g.total) + '</span>'
-        + '<small>' + esc(x.quien) + ' · ' + personas(g.total) + (g.entrados ? ' · ' + g.entrados + ' dentro' : '') + '</small></button>';
-    }).join('') : '<div class="vacio">Nadie con eso en ' + esc(vista().carroza) + '.</div>';
+        + '<small>' + esc(x.quien) + ', ' + personas(g.total) + '</small></button>';
+    }).join('') : '<div class="vacio">Sin resultados</div>';
   }
   $('texto').addEventListener('input', pintarBusqueda);
   $('resultados').addEventListener('click', function (e) {
     var b = e.target.closest('[data-g]');
     if (!b) return;
     var g = vista().grupos.filter(function (x) { return x.id === b.dataset.g; })[0];
-    if (g) { cerrarBuscar(); abrirTarjeta(g); }
+    if (g) { limpiarBusqueda(); abrirTarjeta(g); }
   });
   function etiqueta(estado, entrados, total) {
     if (entrados && entrados >= total) return '<span class="etq info">Dentro</span>';
     return {
       pagado: '<span class="etq ok">Pagado</span>', invitacion: '<span class="etq ok">Invitación</span>',
-      parcial: '<span class="etq ojo">Falta pago</span>', pendiente: '<span class="etq ojo">Cobrar</span>',
+      parcial: '<span class="etq ojo">Cobrar</span>', pendiente: '<span class="etq ojo">Cobrar</span>',
       sinPagar: '<span class="etq mal">Sin pagar</span>', anulado: '<span class="etq mal">Anulado</span>'
     }[estado] || '';
   }
@@ -752,21 +717,22 @@
     return Math.max(0, g.entrados + n - g.pagados);
   }
 
-  // Qué es, en una palabra y un color: [tono, icono, título, explicación].
+  // Qué es, en una palabra y un color: [tono, icono, título, detalle]. Corto, como en
+  // cualquier lector de entradas.
   function resultado(g, porQue) {
-    if (!g) return ['mal', '✕', 'No vale', porQue || 'Este pase no existe o se ha anulado. Si traen otro, escanéalo; si no, busca por nombre.'];
-    if (!g.enCarroza) return ['mal', '✕', 'Otra carroza', 'Este grupo va en ' + g.carrozas.join(' y ') + '. Aquí no entra.'];
-    if (g.estado === 'anulado') return ['mal', '✕', 'Pase anulado', 'El grupo ya no va. Que hablen con quien organiza.'];
-    if (g.estado === 'sinPagar') return ['mal', '✕', 'Falta el pago', 'Aquí no se puede pagar. Que hablen con quien organiza.'];
+    if (!g) return ['mal', '✕', 'No válido', porQue || 'Pase no encontrado.'];
+    if (!g.enCarroza) return ['mal', '✕', 'Otra carroza', 'Va en ' + g.carrozas.join(' y ') + '.'];
+    if (g.estado === 'anulado') return ['mal', '✕', 'Anulado', 'El grupo está dado de baja.'];
+    if (g.estado === 'sinPagar') return ['mal', '✕', 'Sin pagar', 'No se cobra en la puerta.'];
     var faltan = g.personas.filter(function (p) { return !p.entro; }).length;
-    if (!faltan) return ['info', '✓', 'Ya están dentro', 'Entraron ' + personas(g.entrados) + '. Este pase ya se usó.'];
-    var dentro = g.entrados ? ' Ya entraron ' + g.entrados + ', faltan ' + faltan + '.' : '';
+    if (!faltan) return ['info', '✓', 'Ya dentro', 'Entraron ' + g.entrados + ' de ' + g.total + '.'];
+    var antes = g.entrados ? 'Ya dentro ' + g.entrados + ' de ' + g.total + '. ' : '';
     if (g.estado === 'pendiente' || g.estado === 'parcial') {
       var n = cuantosCobrar(g, faltan);
       return ['ojo', '€', n && g.precio ? 'Cobrar ' + euros(g.precio * n) : 'Cobrar',
-        (g.estado === 'parcial' ? 'Pagaron ' + g.pagados + ' de ' + g.total + '. ' : 'No han pagado. ') + 'Cobra y comprueba cada DNI.' + dentro];
+        antes + (g.estado === 'parcial' ? 'Pagado ' + g.pagados + ' de ' + g.total + '.' : 'Pendiente de pago.')];
     }
-    return ['ok', '✓', g.estado === 'invitacion' ? 'Invitación válida' : 'Pase válido', 'Comprueba el DNI de cada uno.' + dentro];
+    return ['ok', '✓', g.estado === 'invitacion' ? 'Invitación' : 'Válido', antes || 'Comprueba los DNI.'];
   }
 
   function abrirTarjeta(g, porQue) {
@@ -780,7 +746,7 @@
     $('tarjetaTexto').textContent = r[3];
     var html = '';
     if (g) {
-      html += '<div class="grupo"><b>' + esc(g.grupo) + '</b><small>' + personas(g.total) + (g.codigo ? ' · ' + esc(g.codigo) : '') + '</small></div>';
+      html += '<div class="grupo"><b>' + esc(g.grupo) + '</b><small>' + personas(g.total) + (g.codigo ? ', código ' + esc(g.codigo) : '') + '</small></div>';
       var abierto = puedeEntrar(g);
       html += '<div class="personas">' + g.personas.map(function (p) {
         if (p.entro) return '<div class="persona ya"><div class="quien"><b>' + esc(p.nombre) + '</b><span class="dni">' + esc(p.dni) + '</span></div>'
@@ -803,7 +769,7 @@
     var g = actual, b = $('entrar');
     if (!puedeEntrar(g)) {
       b.className = 'grande gris'; b.disabled = false; b.dataset.seguir = '1';
-      b.textContent = 'Seguir escaneando';
+      b.textContent = 'Cerrar';
       return;
     }
     delete b.dataset.seguir;
@@ -813,15 +779,15 @@
     if (cobrar) {
       var previo = caja.querySelector('input') ? caja.querySelector('input').value : '';
       caja.innerHTML = '<div class="cobro">' + (PRECIO
-        ? '<b>Cobra ' + euros(importe) + '</b><span>' + cobrar + ' × ' + euros(PRECIO) + (g.estado === 'parcial' ? ' · los que faltan por pagar' : '') + '</span>'
-        : '<b>Cobra a ' + personas(cobrar) + '</b><label>Has cobrado <input type="text" inputmode="decimal" id="euros" placeholder="0" value="' + esc(previo) + '"> €</label>') + '</div>';
+        ? '<b>Cobrar ' + euros(importe) + '</b><span>' + cobrar + ' × ' + euros(PRECIO) + '</span>'
+        : '<b>Cobrar a ' + personas(cobrar) + '</b><label>Importe <input type="text" inputmode="decimal" id="euros" placeholder="0" value="' + esc(previo) + '"> €</label>') + '</div>';
     } else caja.innerHTML = '';
     b.className = 'grande ' + (cobrar ? 'naranja' : 'verde');
     b.disabled = !n;
-    var entran = n === 1 ? 'entra 1' : 'entran los ' + n;
+    var entran = n === 1 ? 'Entra 1' : 'Entran ' + n;
     b.textContent = !n ? 'Marca quién entra'
-      : cobrar ? '€ Cobrado' + (PRECIO ? ' ' + euros(importe) : '') + ' · ' + entran
-      : '✓ ' + entran.charAt(0).toUpperCase() + entran.slice(1);
+      : cobrar ? 'Cobrado' + (PRECIO ? ' ' + euros(importe) : '') + ', ' + entran.toLowerCase()
+      : entran;
   }
   $('tarjetaCuerpo').addEventListener('change', function (e) {
     if (!e.target.dataset.n) return;
@@ -840,7 +806,7 @@
       else {
         cobro.euros = ($('euros') && $('euros').value || '').trim();
         if (!/^\d+([.,]\d{1,2})?$/.test(cobro.euros) || !Number(cobro.euros.replace(',', '.'))) {
-          $('tarjetaError').textContent = 'Escribe cuánto has cobrado.'; $('tarjetaError').hidden = false; $('euros').focus(); return;
+          $('tarjetaError').textContent = 'Indica el importe cobrado.'; $('tarjetaError').hidden = false; $('euros').focus(); return;
         }
         cobrado = euros(Number(cobro.euros.replace(',', '.')));
       }
@@ -851,8 +817,7 @@
     guardar('cola', cola);
     cerrarTarjeta();
     pintar();
-    hecho(cuantos, g.grupo + (cobrado ? ' · cobrados ' + cobrado : ''));
-    tostada(cuantos + ' · ' + g.grupo, o);
+    hecho(cuantos, g.grupo + (cobrado ? '. Cobrado ' + cobrado + '.' : ''));
     mandar();
   });
   function hecho(titulo, texto) {
@@ -861,32 +826,6 @@
     $('hecho').hidden = false;
     setTimeout(function () { $('hecho').hidden = true; }, 1000);
   }
-
-  /* ---------- Aviso con «Deshacer» ---------- */
-  var relojTostada = null, deshacible = null;
-  function tostada(texto, o) {
-    clearTimeout(relojTostada);
-    deshacible = o || null;
-    $('tostadaTexto').textContent = texto;
-    $('deshacer').hidden = !o;
-    $('tostada').hidden = false;
-    relojTostada = setTimeout(function () { $('tostada').hidden = true; deshacible = null; }, o ? 10000 : 4000);
-  }
-  $('deshacer').addEventListener('click', function () {
-    var o = deshacible;
-    if (!o) return;
-    deshacible = null;
-    var i = cola.indexOf(o), sinMandar = i > 0 || (i === 0 && !mandando);
-    // Si aún no ha salido hacia Google, basta con quitarla; si ya salió, se deshace allí.
-    if (sinMandar) quitarDeLaCola(o);
-    else {
-      cola.push({ tipo: 'deshacer', op: nuevoId(), cuando: Date.now(), hora: hora(Date.now()), id: o.id, grupo: o.grupo, numeros: o.numeros, cobro: { personas: 0 } });
-      guardar('cola', cola);
-      mandar();
-    }
-    pintar();
-    tostada('Entrada deshecha' + (o.cobrado && !sinMandar ? '. El cobro sigue apuntado: si fue un error, quítalo en el panel.' : '.'));
-  });
 
   /* ---------- Arranque ---------- */
   $('inicio').hidden = false;
