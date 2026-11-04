@@ -140,7 +140,7 @@
   .sola p { margin: 0; color: var(--tenue); text-wrap: balance; }
   .sola ol { text-align: left; margin: 0; padding-left: 1.3rem; color: var(--texto); display: grid; gap: .4rem; }
   .sola .grande { margin-top: .5rem; }
-  /* Enlace de todas las carrozas: un botón por carroza, con su día. */
+  /* Enlace de varias carrozas: un botón por carroza, con su día. */
   .elegirC { display: grid; gap: .6rem; width: 100%; }
   .elegirC button { min-height: 3.8rem; border-radius: 1rem; border: 1px solid rgba(255,255,255,.16); background: rgba(255,255,255,.06); color: var(--texto); font: inherit; font-size: 1.15rem; font-weight: 800;
     display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .1rem; cursor: pointer; }
@@ -265,7 +265,7 @@
   var API = /^AKfy[A-Za-z0-9_-]{20,120}$/.test(S) ? 'https://script.google.com/macros/s/' + S + '/exec'
     : enLocal && /^http:\/\/(127\.0\.0\.1|localhost):\d+\/exec$/.test(h.get('api') || '') ? h.get('api') : '';
   var cola = [];
-  // Un enlace de todas las carrozas: la de hoy se elige al abrir y viaja detrás de la clave («clave~Carroza»).
+  // Un enlace de varias carrozas: la de hoy se elige al abrir y viaja detrás de la clave («clave~Carroza»).
   var ELEGIDA = '';
   if (!/^[a-f0-9]{32}$/.test(LLAVE) || !API) { cerrar(''); return; }
 
@@ -275,14 +275,14 @@
   var PREFIJO = 'puerta-' + LLAVE.slice(0, 12) + '-';
   function leer(k) { try { return JSON.parse(localStorage.getItem(PREFIJO + k) || 'null'); } catch (e) { return null; } }
   function guardar(k, v) { try { localStorage.setItem(PREFIJO + k, JSON.stringify(v)); } catch (e) { /* sin sitio o privado: sigue en memoria */ } }
-  function borrarTodo() { ['lista', 'cola', 'fallos', 'todas'].forEach(function (k) { try { localStorage.removeItem(PREFIJO + k); } catch (e) {} }); }
+  function borrarTodo() { ['lista', 'cola', 'fallos', 'varias'].forEach(function (k) { try { localStorage.removeItem(PREFIJO + k); } catch (e) {} }); }
 
   var base = leer('lista');                 // la última lista que dio Google
   if (base && !(Date.now() - base.recibida < 18 * 3600000)) base = null;
   cola = leer('cola') || [];                // entradas y deshacer por mandar, en orden
   var fallos = leer('fallos') || [];        // lo que Google no aceptó: hay que verlo
-  var TODAS = leer('todas');                // enlace de todas: sus carrozas, para elegir aun sin red
-  if (TODAS) base = null;                   // la lista guardada es de una carroza: hasta elegir, ninguna
+  var VARIAS = leer('varias');               // enlace de varias: sus carrozas, para elegir aun sin red
+  if (VARIAS) base = null;                   // la lista guardada es de una carroza: hasta elegir, ninguna
   var conectado = null;
 
   /* ---------- Google ---------- */
@@ -300,7 +300,7 @@
         return j.r;
       });
   }
-  function esEnlaceMalo(e) { return e && e.deGoogle && /no vale o está apagado|ya no está\. Pide uno nuevo/.test(e.message); }
+  function esEnlaceMalo(e) { return e && e.deGoogle && /no vale o está apagado|ya no están?\. Pide uno nuevo/.test(e.message); }
 
   // El enlace ya no vale: fuera los nombres del móvil.
   function cerrar(texto) {
@@ -398,7 +398,7 @@
   /* ---------- La lista: al abrir, cada 20 s y después de mandar ---------- */
   var pidiendo = false, mandadas = 0;
   function refrescar() {
-    if (pidiendo || (TODAS && !ELEGIDA)) return;
+    if (pidiendo || (VARIAS && !ELEGIDA)) return;
     pidiendo = true;
     var antes = mandadas;
     llamar('lista').then(function (l) {
@@ -413,7 +413,7 @@
     }).catch(function (e) {
       pidiendo = false;
       if (esEnlaceMalo(e)) { cerrar(e.message); return; }
-      // Enlace de todas sin carroza elegida, o la elegida ya no está: a elegir otra vez.
+      // Enlace de varias sin carroza elegida, o la elegida ya no está: a elegir otra vez.
       if (e.deGoogle && /elige la de hoy|Elige la carroza de hoy/.test(e.message)) { volverAElegir(); return; }
       if (e.deGoogle) avisar(e.message); else conectado = false;
       if (!base) $('inicioTexto').textContent = 'Sin conexión. La lista se cargará al recuperarla.';
@@ -841,7 +841,7 @@
     setTimeout(function () { $('hecho').hidden = true; }, 1000);
   }
 
-  /* ---------- Enlace de todas: cuál es la de hoy, cada vez que se abre ---------- */
+  /* ---------- Enlace de varias: cuál es la de hoy, cada vez que se abre ---------- */
   function elegirCarroza(cs) {
     $('inicioTitulo').textContent = '¿Qué carroza?';
     $('inicioTexto').textContent = 'Elige la de hoy.';
@@ -853,8 +853,8 @@
   }
   $('elegirC').addEventListener('click', function (e) {
     var b = e.target.closest('[data-i]');
-    if (!b || !TODAS) return;
-    ELEGIDA = TODAS[Number(b.dataset.i)].nombre;
+    if (!b || !VARIAS) return;
+    ELEGIDA = VARIAS[Number(b.dataset.i)].nombre;
     $('elegirC').hidden = true;
     $('empezar').hidden = false; $('empezar').disabled = true;
     $('inicioTitulo').textContent = ELEGIDA;
@@ -866,13 +866,13 @@
     refrescar();
   });
 
-  // ¿El enlace es de todas? Lo dice Google; sin red, vale lo último que dijo.
+  // ¿El enlace es de varias? Lo dice Google; sin red, vale lo último que dijo.
   function pedirCarrozas() {
     llamar('carrozas', { carroza: '' }).then(function (r) {
-      if (r && r.todas) {
-        TODAS = r.carrozas; guardar('todas', TODAS);
-        if (!ELEGIDA) elegirCarroza(TODAS);
-      } else if (TODAS) { TODAS = null; guardar('todas', null); $('elegirC').hidden = true; $('empezar').hidden = false; $('empezar').disabled = true; refrescar(); }
+      if (r && r.varias) {
+        VARIAS = r.carrozas; guardar('varias', VARIAS);
+        if (!ELEGIDA) elegirCarroza(VARIAS);
+      } else if (VARIAS) { VARIAS = null; guardar('varias', null); $('elegirC').hidden = true; $('empezar').hidden = false; $('empezar').disabled = true; refrescar(); }
     }).catch(function (e) {
       if (esEnlaceMalo(e)) cerrar(e.message);
       // Sin red o un Google de antes (sin «carrozas»): sigue como hasta ahora.
@@ -883,14 +883,14 @@
     parar();
     ['tarjeta', 'velo', 'sinCamara', 'arriba', 'abajo'].forEach(function (id) { $(id).hidden = true; });
     $('inicio').hidden = false; $('empezar').disabled = true;
-    if (TODAS) elegirCarroza(TODAS);
+    if (VARIAS) elegirCarroza(VARIAS);
     pedirCarrozas();
   }
 
   /* ---------- Arranque ---------- */
   $('inicio').hidden = false;
   pintarFallos();
-  if (TODAS) elegirCarroza(TODAS); else { pintar(); refrescar(); }
+  if (VARIAS) elegirCarroza(VARIAS); else { pintar(); refrescar(); }
   mandar();
   pedirCarrozas();
 })();
