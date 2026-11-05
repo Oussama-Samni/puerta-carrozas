@@ -296,6 +296,8 @@
         var j = null;
         try { j = JSON.parse(t); } catch (e) { j = null; }
         if (!j) throw new Error('Google no responde bien.');   // sin red o página de error: se reintenta
+        // Google tardó o falló por dentro: como sin red, se vuelve a intentar (no es «no registrado»).
+        if (!j.ok && j.reintentar) throw new Error(j.error);
         if (!j.ok) { var e = new Error(j.error || 'Error'); e.deGoogle = true; throw e; }
         return j.r;
       });
