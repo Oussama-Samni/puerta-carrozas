@@ -302,7 +302,7 @@
         return j.r;
       });
   }
-  function esEnlaceMalo(e) { return e && e.deGoogle && /no vale o está apagado|ya no están?\. Pide uno nuevo/.test(e.message); }
+  function esEnlaceMalo(e) { return e && e.deGoogle && /no vale o está apagado|ya no están?\. Pide uno nuevo|ha caducado\. Pide uno nuevo/.test(e.message); }
 
   // El enlace ya no vale: fuera los nombres del móvil.
   function cerrar(texto) {
