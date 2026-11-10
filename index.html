@@ -439,8 +439,9 @@
     llamada.then(function (r) {
       conectado = true; espera = 3000;
       quitarDeLaCola(o);
-      // Lo que dice Google de ese grupo y del contador pasa a ser la lista.
-      if (base && r && r.grupo) {
+      // Lo que dice Google de ese grupo y del contador pasa a ser la lista, si es de esta
+      // carroza (en un enlace de varias, lo apuntado en otra se manda aunque ya se vea ésta).
+      if (base && r && r.grupo && (o.carroza || '') === ELEGIDA) {
         base.grupos = base.grupos.map(function (g) { return g.id === r.grupo.id ? r.grupo : g; });
         base.cuenta = r.cuenta;
         guardar('lista', base);
